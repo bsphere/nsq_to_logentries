@@ -32,10 +32,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	defer le.Close()
+
 	channel := "nsq_to_logentries" + strconv.FormatInt(time.Now().Unix(), 10) +
 		"#ephemeral"
 
 	for _, topic := range strings.Split(topics, ",") {
+		le.Println("Logging messages from topic " + topic)
+
 		c, err := nsq.NewConsumer(topic, channel, nsq.NewConfig())
 		if err != nil {
 			log.Fatal(err)
@@ -44,7 +48,7 @@ func main() {
 		c.AddHandler(nsq.HandlerFunc(func(m *nsq.Message) error {
 			defer m.Finish()
 
-			le.Print(string(m.Body))
+			le.Println(string(m.Body))
 
 			return nil
 		}))
